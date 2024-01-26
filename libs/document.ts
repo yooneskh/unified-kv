@@ -1,10 +1,11 @@
 import { database as sharedDatabase } from './bootstrap.ts';
 import { createObjectId } from '../utils/object-id.ts';
+import { Filter } from '../utils/mongo_types.ts';
 import { matches } from 'unified-mongo-filter'
 
 
-interface IListOptions {
-  filter: unknown;
+interface IListOptions<T> {
+  filter: Filter<T>;
 };
 
 
@@ -35,7 +36,7 @@ export class Document<T> {
     
   }
 
-  async list(options?: IListOptions): Promise<T[]> {
+  async list(options?: IListOptions<T>): Promise<T[]> {
 
     const records = this.database.list({
       prefix: [this.name],
