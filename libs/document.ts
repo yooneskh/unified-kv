@@ -1,5 +1,11 @@
 import { database as sharedDatabase } from './bootstrap.ts';
 import { createObjectId } from '../utils/object-id.ts';
+import { matches } from 'unified-mongo-filter'
+
+
+interface IListOptions {
+  filter: unknown;
+};
 
 
 export class Document<T> {
@@ -29,7 +35,7 @@ export class Document<T> {
     
   }
 
-  async list(): Promise<T[]> {
+  async list(options?: IListOptions): Promise<T[]> {
 
     const records = this.database.list({
       prefix: [this.name],
@@ -39,7 +45,9 @@ export class Document<T> {
     const documents = [];
 
     for await (const record of records) {
-      documents.push(record.value);
+      if (!options || !options.filter || matches(options.filter, record.value)) {
+        documents.push(record.value);
+      }
     }
 
 

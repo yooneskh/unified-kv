@@ -33,6 +33,7 @@
     "https://cdn.jsdelivr.net/gh/denoland/deno_std@0.210.0/assert/unimplemented.ts": "4e3e504792c87c485dbc5f4020489d8806ef697741403af2008dfa7b5a4711e8",
     "https://cdn.jsdelivr.net/gh/denoland/deno_std@0.210.0/assert/unreachable.ts": "1af8c99421cc5fb7332454b2b9eca074a4e394895a180bc837750dedcca75338",
     "https://cdn.jsdelivr.net/gh/denoland/deno_std@0.210.0/fmt/colors.ts": "2685c524bef9b16b3059a417daf6860c754eb755e19e812762ef5dff62f24481",
+    "https://cdn.jsdelivr.net/gh/yooneskh/unified-mongo-filter@v0.3.1/src/mongo-filter.ts": "dc69588e1920be728d8e68657810951a48250b3454ea72168735930073b4d8f7",
     "https://cdn.jsdelivr.net/npm/nanoid@5.0.4/nanoid.js": "344f351a2f60c4405cf008431b6a2046621243bb75b626bee5ceae2e13d145f2"
   }
 }

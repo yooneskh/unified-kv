@@ -149,3 +149,48 @@ Deno.test('create update', async () => {
   assertEquals(document2.streets?.[0].name, 'Mantegh');
 
 });
+
+Deno.test('listing', async () => {
+
+  await model.create({
+    name: 'YoonesList',
+    age: 26,
+    address: {
+      street: 'Mantegh',
+    },
+  });
+
+  await model.create({
+    name: 'YoonesList',
+    age: 26,
+    address: {
+      street: 'Mantegh',
+    },
+  });
+
+  await model.create({
+    name: 'YoonesList',
+    age: 26,
+    address: {
+      street: 'Mantegh',
+    },
+  });
+
+  await model.create({
+    name: 'YoonesList',
+    age: 26,
+    address: {
+      street: 'Mantegh',
+    },
+  });
+
+
+  const list1 = await model.list({
+    filter: {
+      name: 'YoonesList',
+    },
+  });
+
+  assertEquals(list1.length, 4);
+
+});
