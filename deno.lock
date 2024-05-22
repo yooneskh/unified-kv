@@ -1,5 +1,16 @@
 {
   "version": "3",
+  "packages": {
+    "specifiers": {
+      "npm:nanoid@5.0.7": "npm:nanoid@5.0.7"
+    },
+    "npm": {
+      "nanoid@5.0.7": {
+        "integrity": "sha512-oLxFY2gd2IqnjcYyOXD8XGCftpGtZP2AbHbOkthDkvRywH5ayNtPVy9YlOPcHckXzbLTCHpkb7FB+yuxKV13pQ==",
+        "dependencies": {}
+      }
+    }
+  },
   "remote": {
     "https://cdn.jsdelivr.net/gh/denoland/deno_std@0.210.0/assert/_constants.ts": "8a9da298c26750b28b326b297316cdde860bc237533b07e1337c021379e6b2a9",
     "https://cdn.jsdelivr.net/gh/denoland/deno_std@0.210.0/assert/_diff.ts": "2c9371f17cf08cbb843c924bc31ca77af422ec4fe162f73d42c651d547573fa8",
@@ -35,5 +46,10 @@
     "https://cdn.jsdelivr.net/gh/denoland/deno_std@0.210.0/fmt/colors.ts": "2685c524bef9b16b3059a417daf6860c754eb755e19e812762ef5dff62f24481",
     "https://cdn.jsdelivr.net/gh/yooneskh/unified-mongo-filter@v0.3.1/src/mongo-filter.ts": "dc69588e1920be728d8e68657810951a48250b3454ea72168735930073b4d8f7",
     "https://cdn.jsdelivr.net/npm/nanoid@5.0.4/nanoid.js": "344f351a2f60c4405cf008431b6a2046621243bb75b626bee5ceae2e13d145f2"
+  },
+  "workspace": {
+    "dependencies": [
+      "npm:nanoid@5.0.7"
+    ]
   }
 }
