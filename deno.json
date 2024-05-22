@@ -7,7 +7,7 @@
   },
   "imports": {
     "nanoid": "npm:nanoid@5.0.7",
-    "unified-mongo-filter": "https://cdn.jsdelivr.net/gh/yooneskh/unified-mongo-filter@v0.3.1/src/mongo-filter.ts",
+    "unified-mongo-filter": "jsr:@unified/mongo-filter@0.4.0",
     "assert": "https://cdn.jsdelivr.net/gh/denoland/deno_std@0.210.0/assert/mod.ts"
   },
   "fmt": {

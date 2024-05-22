@@ -2,7 +2,13 @@
   "version": "3",
   "packages": {
     "specifiers": {
+      "jsr:@unified/mongo-filter": "jsr:@unified/mongo-filter@0.4.0",
       "npm:nanoid@5.0.7": "npm:nanoid@5.0.7"
+    },
+    "jsr": {
+      "@unified/mongo-filter@0.4.0": {
+        "integrity": "6ccf10c3ea61c229970b15a531b414638cdf7c57c461330842a11e99d2b120fa"
+      }
     },
     "npm": {
       "nanoid@5.0.7": {
@@ -49,6 +55,7 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@unified/mongo-filter",
       "npm:nanoid@5.0.7"
     ]
   }

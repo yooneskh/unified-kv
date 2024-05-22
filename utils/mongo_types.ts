@@ -105,7 +105,7 @@ interface FilterOperators<TValue> extends NonObjectIdLikeDocument {
 
 type BitwiseFilter = number | ReadonlyArray<number>;
 
-const BSONType = Object.freeze({
+const BSONType: any = Object.freeze({
   double: 1,
   string: 2,
   object: 3,
