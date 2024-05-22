@@ -1,6 +1,6 @@
 {
   "name": "@unified/kv",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "exports": "./mod.ts",
   "tasks": {
     "dev": "deno run --watch main.ts"

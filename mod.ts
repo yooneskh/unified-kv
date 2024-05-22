@@ -10,5 +10,9 @@ export {
 } from './libs/document.ts';
 
 export type {
+  IBaseDocument,
+} from './libs/document.ts';
+
+export type {
   Filter,
 } from './utils/mongo_types.ts';

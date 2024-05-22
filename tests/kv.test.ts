@@ -5,9 +5,6 @@ await bootstrap();
 
 
 interface User {
-  _id?: string;
-  createdAt?: number;
-  updatedAt?: number;
   name: string;
   age: number;
   address: {
