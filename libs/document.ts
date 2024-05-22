@@ -1,6 +1,6 @@
 import { database as sharedDatabase } from './bootstrap.ts';
 import { createObjectId } from '../utils/object-id.ts';
-import { Filter } from '../utils/mongo_types.ts';
+import type { Filter } from '../utils/mongo_types.ts';
 import { matches } from 'unified-mongo-filter'
 
 
