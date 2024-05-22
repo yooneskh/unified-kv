@@ -57,7 +57,7 @@ Deno.test('create retrieve', async () => {
   });
 
 
-  const document = await model.retrieve(obj._id!);
+  const document = await model.retrieve({ recordId: obj._id! });
 
   assertExists(document._id);
   assertExists(document.createdAt);
@@ -83,18 +83,17 @@ Deno.test('create delete', async () => {
   });
 
 
-  const document = await model.retrieve(obj._id!);
+  const document = await model.retrieve({ recordId: obj._id! });
 
   assertExists(document._id);
   assertExists(document.createdAt);
   assertEquals(document.name, 'Yoones3');
   assertEquals(document.age, 24);
   assertEquals(document.address.street, 'Mantegh');
+  
+  await model.delete({ recordId: document._id });
 
-
-  await model.delete(document._id);
-
-  assertRejects(() => model.retrieve(document._id!))
+  assertRejects(() => model.retrieve({ recordId: document._id! }))
 
 });
 
@@ -109,7 +108,7 @@ Deno.test('create update', async () => {
   });
 
 
-  const document1 = await model.retrieve(obj._id!);
+  const document1 = await model.retrieve({ recordId: obj._id! });
 
   assertExists(document1._id);
   assertExists(document1.createdAt);
@@ -118,15 +117,18 @@ Deno.test('create update', async () => {
   assertEquals(document1.address.street, 'Mantegh');
 
 
-  const changedObj = await model.update(document1._id, {
-    name: 'Yoones7',
-    age: 27,
-    address: undefined,
-    streets: [
-      {
-        name: 'Mantegh',
-      }
-    ],
+  const changedObj = await model.update({
+    recordId: document1._id,
+    payload: {
+      name: 'Yoones7',
+      age: 27,
+      address: undefined,
+      streets: [
+        {
+          name: 'Mantegh',
+        }
+      ],
+    },
   });
 
   assertExists(changedObj._id);
@@ -138,7 +140,7 @@ Deno.test('create update', async () => {
   assertEquals(changedObj.streets?.[0].name, 'Mantegh');
 
 
-  const document2 = await model.retrieve(changedObj._id!);
+  const document2 = await model.retrieve({ recordId: changedObj._id! });
 
   assertExists(document2._id);
   assertExists(document2.createdAt);

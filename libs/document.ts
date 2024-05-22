@@ -5,8 +5,23 @@ import { matches } from 'unified-mongo-filter'
 
 
 interface IListOptions<T> {
-  filter: Filter<T>;
+  filter?: Filter<T>;
+  limit?: number;
+  skip?: number;
 };
+
+interface IQueryOptions<T> {
+  recordId?: string;
+  filter?: Filter<T>;
+}
+
+interface IUpdateOptions<T> extends IQueryOptions<T> {
+  payload: Partial<T>;
+}
+
+interface IReplaceOptions<T> extends IQueryOptions<T> {
+  payload: T;
+}
 
 
 export class Document<T> {
@@ -44,11 +59,25 @@ export class Document<T> {
 
 
     const documents = [];
+    let skippedCount = 0;
 
     for await (const record of records) {
-      if (!options || !options.filter || matches(options.filter, record.value)) {
-        documents.push(record.value);
+
+      if (options?.filter && !matches(options.filter, record.value)) {
+        continue;
       }
+
+      if (options?.limit !== undefined && documents.length >= options.limit) {
+        break;
+      }
+
+      if (options?.skip !== undefined && skippedCount < options.skip) {
+        skippedCount++;
+        continue;
+      }
+
+      documents.push(record.value);
+
     }
 
 
@@ -56,43 +85,141 @@ export class Document<T> {
 
   }
 
-  async retrieve(objectId: string): Promise<T> {
+  async retrieve(options: IQueryOptions<T>): Promise<T> {
 
-    const record = await this.database.get<T>([ this.name, objectId ]);
+    if (!options.filter && !options.recordId) {
+      throw new Error('invalid retrieve options');
+    }
 
-    if (!record.value) {
+
+    if (options.recordId) {
+
+      const record = await this.database.get<T>([ this.name, options.recordId ]);
+
+      if (!record.value) {
+        throw new Error('document not found');
+      }
+      
+      if (options.filter && !matches(options.filter, record.value)) {
+        throw new Error('document not found');
+      }
+
+      return record.value;
+
+    }
+
+
+    const record = (await this.list({ filter: options.filter, limit: 1 }))[0];
+
+    if (!record) {
       throw new Error('document not found');
     }
 
 
-    return record.value;
+    return record;
 
   }
 
-  async update(objectId: string, changes: Partial<T>): Promise<T> {
+  async find(options: IQueryOptions<T>): Promise<T | undefined> {
 
-    if ('_id' in changes || 'createdAt' in changes || 'updatedAt' in changes) {
-      throw new Error('changes cannot have _id or createdAt or updatedAt');
+    if (!options.filter && !options.recordId) {
+      throw new Error('invalid find options');
     }
 
 
-    const document = await this.retrieve(objectId);
+    if (options.recordId) {
 
-    const doc = {
+      const record = await this.database.get<T>([ this.name, options.recordId ]);
+
+      if (!record.value) {
+        return undefined
+      }
+      
+      if (options.filter && !matches(options.filter, record.value)) {
+        return undefined
+      }
+
+      return record.value;
+
+    }
+
+
+    return (await this.list({ filter: options.filter, limit: 1 }))[0];
+
+  }
+
+  async update(options: IUpdateOptions<T>): Promise<T> {
+
+    if ((!options.recordId && !options.filter) || (!options.payload)) {
+      throw new Error('invalid update options');
+    }
+
+
+    if ('_id' in options.payload || 'createdAt' in options.payload || 'updatedAt' in options.payload) {
+      throw new Error('payload cannot have _id or createdAt or updatedAt');
+    }
+
+
+    const document = await this.retrieve(options);
+
+    const newDocument = {
       ...document,
-      ...changes,
+      ...options.payload,
       updatedAt: Date.now(),
     };
 
     // deno-lint-ignore no-explicit-any
-    await this.database.set([this.name, (doc as any)._id], doc);
+    await this.database.set([ this.name, (newDocument as any)._id ], newDocument);
 
-    return doc;
+    return newDocument;
 
   }
 
-  async delete(objectId: string) {
-    await this.database.delete([ this.name, objectId ]);
+  async replace(options: IReplaceOptions<T>): Promise<T> {
+    
+    if ((!options.recordId && !options.filter) || (!options.payload)) {
+      throw new Error('invalid replace options');
+    }
+
+
+    // deno-lint-ignore no-explicit-any
+    if ('_id' in (options.payload as any) || 'createdAt' in (options.payload as any) || 'updatedAt' in (options.payload as any)) {
+      throw new Error('payload cannot have _id or createdAt or updatedAt');
+    }
+
+
+    const document = await this.retrieve(options);
+
+    const newDocument = {
+      ...options.payload,
+      // deno-lint-ignore no-explicit-any
+      _id: (document as any)._id,
+      // deno-lint-ignore no-explicit-any
+      createdAt: (document as any).createdAt,
+      updatedAt: Date.now(),
+    };
+
+    // deno-lint-ignore no-explicit-any
+    await this.database.set([ this.name, (newDocument as any)._id ], newDocument);
+
+    return newDocument;
+
+  }
+
+  async delete(options: IQueryOptions<T>): Promise<T> {
+
+    if (!options.filter && !options.recordId) {
+      throw new Error('invalid delete options');
+    }
+
+
+    const record = await this.retrieve(options);
+
+    // deno-lint-ignore no-explicit-any
+    await this.database.delete([ this.name, (record as any)._id ]);
+
+    return record;
+
   }
 
   async truncate() {
@@ -102,7 +229,7 @@ export class Document<T> {
     await Promise.all(
       records.map(it =>
         // deno-lint-ignore no-explicit-any
-        this.delete((it as any)._id)
+        this.delete({ recordId: (it as any)._id })
       )
     );
 
