@@ -2,6 +2,8 @@ import { matches } from 'unified-mongo-filter'
 import { database as sharedDatabase } from './bootstrap.ts';
 import { createObjectId } from '../utils/object-id.ts';
 import type { Filter } from '../utils/mongo_types.ts';
+import { populateRecord } from '../utils/populate.ts';
+import { trimRecord } from '../utils/trim.ts';
 
 
 export interface IBaseDocument {
@@ -15,11 +17,18 @@ interface IListOptions<T> {
   filter?: Filter<T & IBaseDocument>;
   limit?: number;
   skip?: number;
+  populate?: Record<string, string[]>;
+  select?: string[];
 };
 
 interface IQueryOptions<T> {
   recordId?: string;
   filter?: Filter<T & IBaseDocument>;
+}
+
+interface IRetrieveOptions<T> extends IQueryOptions<T> {
+  populate?: Record<string, string[]>;
+  select?: string[];
 }
 
 interface IUpdateOptions<T> extends IQueryOptions<T> {
@@ -70,7 +79,9 @@ export class Document<T> {
 
     for await (const record of records) {
 
-      if (options?.filter && !matches(options.filter, record.value)) {
+      const recordValue = record.value;
+
+      if (options?.filter && !matches(options.filter, recordValue)) {
         continue;
       }
 
@@ -83,7 +94,17 @@ export class Document<T> {
         continue;
       }
 
-      documents.push(record.value);
+
+      if (options?.populate) {
+        await populateRecord(this.database, this.name, recordValue as Record<string, unknown>, options.populate);
+      }
+
+      if (options?.select) {
+        trimRecord(recordValue as Record<string, unknown>, options.select)
+      }
+
+
+      documents.push(recordValue);
 
     }
 
@@ -92,7 +113,7 @@ export class Document<T> {
 
   }
 
-  async retrieve(options: IQueryOptions<T>): Promise<T & IBaseDocument> {
+  async retrieve(options: IRetrieveOptions<T>): Promise<T & IBaseDocument> {
 
     if (!options.filter && !options.recordId) {
       throw new Error('invalid retrieve options');
@@ -102,32 +123,52 @@ export class Document<T> {
     if (options.recordId) {
 
       const record = await this.database.get<T & IBaseDocument>([ this.name, options.recordId ]);
+      const recordValue = record.value;
 
-      if (!record.value) {
+      if (!recordValue) {
         throw new Error('document not found');
       }
       
-      if (options.filter && !matches(options.filter, record.value)) {
+      if (options.filter && !matches(options.filter, recordValue)) {
         throw new Error('document not found');
       }
 
-      return record.value;
+
+      if (options.populate) {
+        await populateRecord(this.database, this.name, recordValue as Record<string, unknown>, options.populate);
+      }
+
+      if (options.select) {
+        trimRecord(recordValue as Record<string, unknown>, options.select);
+      }
+
+
+      return recordValue;
 
     }
 
 
-    const record = (await this.list({ filter: options.filter, limit: 1 }))[0];
+    const recordValue = (await this.list({ filter: options.filter, populate: options.populate, select: options.select, limit: 1 }))[0];
 
-    if (!record) {
+    if (!recordValue) {
       throw new Error('document not found');
     }
 
 
-    return record;
+    if (options.populate) {
+      await populateRecord(this.database, this.name, recordValue as Record<string, unknown>, options.populate);
+    }
+
+    if (options.select) {
+      trimRecord(recordValue as Record<string, unknown>, options.select);
+    }
+
+
+    return recordValue;
 
   }
 
-  async find(options: IQueryOptions<T>): Promise<(T & IBaseDocument) | undefined> {
+  async find(options: IRetrieveOptions<T>): Promise<(T & IBaseDocument) | undefined> {
 
     if (!options.filter && !options.recordId) {
       throw new Error('invalid find options');
@@ -137,21 +178,44 @@ export class Document<T> {
     if (options.recordId) {
 
       const record = await this.database.get<T & IBaseDocument>([ this.name, options.recordId ]);
+      const recordValue = record.value;
 
-      if (!record.value) {
-        return undefined
-      }
-      
-      if (options.filter && !matches(options.filter, record.value)) {
+      if (!recordValue) {
         return undefined
       }
 
-      return record.value;
+      if (options.filter && !matches(options.filter, recordValue)) {
+        return undefined
+      }
+
+
+      if (options.populate) {
+        await populateRecord(this.database, this.name, recordValue as Record<string, unknown>, options.populate);
+      }
+
+      if (options.select) {
+        trimRecord(recordValue as Record<string, unknown>, options.select);
+      }
+
+
+      return recordValue;
 
     }
 
 
-    return (await this.list({ filter: options.filter, limit: 1 }))[0];
+    const recordValue = (await this.list({ filter: options.filter, populate: options.populate, select: options.select, limit: 1 }))[0];
+
+
+    if (options.populate) {
+      await populateRecord(this.database, this.name, recordValue as Record<string, unknown>, options.populate);
+    }
+
+    if (options.select) {
+      trimRecord(recordValue as Record<string, unknown>, options.select);
+    }
+
+
+    return recordValue;
 
   }
 

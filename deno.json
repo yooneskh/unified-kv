@@ -1,14 +1,11 @@
 {
   "name": "@unified/kv",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "exports": "./mod.ts",
-  "tasks": {
-    "dev": "deno run --watch main.ts"
-  },
   "imports": {
+    "@std/assert": "jsr:@std/assert@0.225.3",
     "nanoid": "npm:nanoid@5.0.7",
-    "unified-mongo-filter": "jsr:@unified/mongo-filter@0.4.0",
-    "assert": "https://cdn.jsdelivr.net/gh/denoland/deno_std@0.210.0/assert/mod.ts"
+    "unified-mongo-filter": "jsr:@unified/mongo-filter@0.4.0"
   },
   "fmt": {
     "options": {

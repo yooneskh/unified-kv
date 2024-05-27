@@ -6,6 +6,10 @@ export {
 } from './libs/bootstrap.ts';
 
 export {
+  registerPopulate,
+} from './libs/populate-registry.ts';
+
+export {
   Document,
 } from './libs/document.ts';
 

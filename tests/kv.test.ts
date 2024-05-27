@@ -1,4 +1,4 @@
-import { assertEquals, assertExists, assertFalse, assertGreaterOrEqual, assertRejects } from 'assert';
+import { assertEquals, assertExists, assertFalse, assertGreaterOrEqual, assertRejects } from '@std/assert';
 import { Document, bootstrap } from '../mod.ts';
 
 await bootstrap();
