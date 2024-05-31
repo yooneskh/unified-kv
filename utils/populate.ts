@@ -2,7 +2,7 @@ import { registry } from '../libs/populate-registry.ts';
 import { trimRecord } from './trim.ts';
 
 
-export async function populateRecord(database: Deno.Kv, model: string, record: Record<string, unknown>, populate: Record<string, string[]>) {
+export async function populateRecord(database: Deno.Kv, model: string, record: Record<string, unknown>, populate: Record<string, string[]>, keyPrefix = '') {
 
   if (!record || typeof record !== 'object') {
     return;
@@ -14,14 +14,14 @@ export async function populateRecord(database: Deno.Kv, model: string, record: R
     const it = record[key];
 
 
-    const populateSelect = key in populate ? (populate[key]) : (Object.keys(populate).some(k => k.startsWith(key) + '.') ? true : false);
+    const populateSelect = key in populate ? (populate[key]) : (Object.keys(populate).some(k => k.startsWith(key + '.')) ? true : false);
 
     if (populateSelect === false) {
-      return;
+      continue;
     }
 
 
-    const targetModel = registry[model][key];
+    const targetModel = registry[model][keyPrefix + key];
 
     const targetPopulate = Object.fromEntries(
       Object.entries(populate)
@@ -29,8 +29,21 @@ export async function populateRecord(database: Deno.Kv, model: string, record: R
         .map(k => [k[0].slice(k[0].indexOf('.') + 1), k[1]])
     );
 
-    if (Array.isArray(it)) {
-      
+
+    if (typeof it === 'string') {
+
+      record[key] = (await database.get([ targetModel, it ])).value;
+
+      if (record[key] && Array.isArray(populateSelect)) {
+        trimRecord(record[key] as Record<string, unknown>, populateSelect);
+      }
+
+      if (record[key]) {
+        await populateRecord(database, targetModel, record[key] as Record<string, unknown>, targetPopulate);
+      }
+
+    }
+    else if (Array.isArray(it) && it.every(x => typeof x === 'string')) {
       record[key] = (await Promise.all(
         it.map(async id => {
 
@@ -54,20 +67,14 @@ export async function populateRecord(database: Deno.Kv, model: string, record: R
 
         })
       )).filter(Boolean);
-
     }
-    else if (typeof it === 'string') {
-      
-      record[key] = (await database.get([ targetModel, it ])).value;
-
-      if (record[key] && Array.isArray(populateSelect)) {
-        trimRecord(record[key] as Record<string, unknown>, populateSelect);
-      }
-
-      if (record[key]) {
-        await populateRecord(database, targetModel, record[key] as Record<string, unknown>, targetPopulate);
-      }
-
+    else if (Array.isArray(it) && it.every(x => typeof x === 'object' && x)) {
+      record[key] = (await Promise.all(
+        it.map(async childRecord => {
+          await populateRecord(database, model, childRecord, targetPopulate, key + '.');
+          return childRecord;
+        })
+      )).filter(Boolean);
     }
 
   }
